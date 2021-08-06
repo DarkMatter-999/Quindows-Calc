@@ -1,8 +1,8 @@
 ## Quindows Calculator
 
 ### A "simple" MS Calculator Clone
-A simple barebones clone of the Calculator that ships with MS Windows 10
-More aesthetically accurate than featureful
+A simple barebones clone of the Calculator that ships with MS Windows 10  
+More aesthetically accurate than featureful  
 that's all folks ;)
 
 #### Usage
