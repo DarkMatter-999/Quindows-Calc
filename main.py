@@ -5,9 +5,7 @@ from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QLineEdi
 import sys, math, dill, time
 
 class Calc(QMainWindow):
-    """PyCalc's View (GUI)."""
     def __init__(self):
-        """View initializer."""
         super().__init__()
         self.setWindowTitle('Calculator')
         self.generalLayout = QVBoxLayout()
