@@ -1,35 +1,26 @@
 import PyQt5 as qt
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtWidgets import QPushButton, QLineEdit, QVBoxLayout, QMainWindow, QGridLayout, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QLineEdit, QVBoxLayout, QMainWindow, QGridLayout, QSizePolicy
 
-from functools import partial
-import sys
+import sys, math, dill, time
 
 class Calc(QMainWindow):
     """PyCalc's View (GUI)."""
     def __init__(self):
         """View initializer."""
         super().__init__()
-        # Set some main window's properties
         self.setWindowTitle('Calculator')
-        # Set the central widget and the general layout
         self.generalLayout = QVBoxLayout()
         self.generalLayout.setSpacing(0)
+        self.counter = 0
         self._centralWidget = QWidget(self)
         self.setCentralWidget(self._centralWidget)
         self._centralWidget.setLayout(self.generalLayout)
-        # Create the display and the buttons
+
         self._createHeader()
         self._createDisplay()
         self._createMem()
         self._createButtons()
-
-        self.operator = ""
-        self.operSet = False
-        self.num = None
 
     def _createDisplay(self):
         self.answer = QLabel()
@@ -51,6 +42,7 @@ class Calc(QMainWindow):
         self.changeModes.setObjectName("top")
         self.changeModes.setFixedWidth(25)
         layout.addWidget(self.changeModes, 0, 0)
+        self.changeModes.clicked.connect(self.mem)
 
         self.name = QLabel()
         self.name.setText("     Standard")
@@ -63,6 +55,7 @@ class Calc(QMainWindow):
         self.history.setObjectName("top")
         self.history.setFixedWidth(25)
         layout.addWidget(self.history, 0, 2)
+        self.history.clicked.connect(self.mem)
 
         layout.setSpacing(0)
         self.generalLayout.addLayout(layout)
@@ -72,32 +65,39 @@ class Calc(QMainWindow):
         self.MC = QPushButton("MC")
         self.MC.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.MC.setObjectName("mem")
+        self.MC.clicked.connect(self.mem)
 
         layout.addWidget(self.MC, 0, 0)
 
         self.MR = QPushButton("MR")
         self.MR.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.MR.setObjectName("mem")
+        self.MR.clicked.connect(self.mem)
         layout.addWidget(self.MR, 0, 1)
+
 
         self.Mplus = QPushButton("M+")
         self.Mplus.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.Mplus.setObjectName("mem")
+        self.Mplus.clicked.connect(self.mem)
         layout.addWidget(self.Mplus, 0, 2)
 
         self.Mminus = QPushButton("M-")
         self.Mminus.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.Mminus.setObjectName("mem")
+        self.Mminus.clicked.connect(self.mem)
         layout.addWidget(self.Mminus, 0, 3)
 
         self.MS = QPushButton("MS")
         self.MS.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.MS.setObjectName("mem")
+        self.MS.clicked.connect(self.mem)
         layout.addWidget(self.MS, 0, 4)
 
         self.Mstar = QPushButton("M*")
         self.Mstar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.Mstar.setObjectName("mem")
+        self.Mstar.clicked.connect(self.mem)
         layout.addWidget(self.Mstar, 0, 5)
 
         self.generalLayout.addLayout(layout)
@@ -165,7 +165,7 @@ class Calc(QMainWindow):
         self.functions["-"].clicked.connect(self.sub)
         self.functions["*"].clicked.connect(self.mul)
         self.functions["/"].clicked.connect(self.div)
-        self.functions["="].clicked.connect(self.eval)
+        self.functions["="].clicked.connect(self.eq)
 
         self.buttons["0"].clicked.connect(self.zero)
         self.buttons["1"].clicked.connect(self.one)
@@ -181,8 +181,11 @@ class Calc(QMainWindow):
         self.extras["CE"].clicked.connect(self.clear)
         self.extras["C"].clicked.connect(self.clear)
         self.extras["⮨"].clicked.connect(self.backspace)
+        self.extras["%"].clicked.connect(self.per)
+        self.extras["√"].clicked.connect(self.root)
+        self.extras["x²"].clicked.connect(self.sq)
+        self.extras["1/x"].clicked.connect(self.inv)
 
-        # Add buttonsLayout to the general layout
         buttonslayout.setSpacing(3)
         self.generalLayout.addLayout(buttonslayout)
 
@@ -190,20 +193,77 @@ class Calc(QMainWindow):
         pass
 
     def add(self):
-        text = self.display.text()
-        self.logic("+")
+        self.logic()
+        text = self.answer.text()
+        self.answer.setText(text + "+")
+        self.display.setText("")
 
     def sub(self):
-        text = self.display.text()
-        self.logic("-")
+        self.logic()
+        text = self.answer.text()
+        self.answer.setText(text + "-")
+        self.display.setText("")
 
     def mul(self):
-        text = self.display.text()
-        self.logic("*")
+        self.logic()
+        text = self.answer.text()
+        self.answer.setText(text + "*")
+        self.display.setText("")
 
     def div(self):
-        text = self.display.text()
-        self.logic("/")
+        self.logic()
+        text = self.answer.text()
+        self.answer.setText(text + "/")
+        self.display.setText("")
+
+    def per(self):
+        self.answer.setText(str(self.answer.text() + self.display.text()))
+        try:
+            self.answer.setText(str(eval(self.answer.text()) / 100))
+            print(self.answer.text())
+        except Exception as e:
+            print(e)
+
+        self.display.setText("")
+
+    def root(self):
+        self.answer.setText(str(self.answer.text() + self.display.text()))
+        try:
+            self.answer.setText(str(math.sqrt(eval(self.answer.text()))))
+            print(self.answer.text())
+        except Exception as e:
+            print(e)
+
+        self.display.setText("")
+
+    def sq(self):
+        self.answer.setText(str(self.answer.text() + self.display.text()))
+        try:
+            self.answer.setText(str(eval(self.answer.text()) ** 2))
+            print(self.answer.text())
+        except Exception as e:
+            print(e)
+
+        self.display.setText("")
+
+    def inv(self):
+        self.answer.setText(str(self.answer.text() + self.display.text()))
+        try:
+            self.answer.setText(str(1/eval(self.answer.text())))
+            print(self.answer.text())
+        except Exception as e:
+            print(e)
+
+        self.display.setText("")
+
+    def mem(self):
+        f = open("add.lib", "rb")
+        lib = dill.load(f)
+        f.close()
+        self.display.setText(str(lib.out(self.counter)))
+        self.counter += 1
+        if self.counter >= 14:
+            self.counter = 0
 
     def zero(self):
         text = self.display.text()
@@ -236,70 +296,37 @@ class Calc(QMainWindow):
         text = self.display.text()
         self.display.setText(text + "9")
 
-
-    def eval(self):
-        # text = self.answer.text().strip("+").strip("-").strip("*").strip("/")
-        self.logic("=")
-        self.display.setText(str(self.num))
+    def eq(self):
+        self.logic()
+        text = self.answer.text()
+        self.display.setText(text)
         self.answer.setText("")
-        self.operSet = True
 
     def clear(self):
         self.display.setText("")
         self.answer.setText("")
-        self.num = None
 
     def backspace(self):
         text = self.display.text()
         self.display.setText(text[:-1])
 
-    def logic(self, func):
-        if self.display.text() != "" and self.num != None:
-            try:
-                if self.operator == "+":
-                    self.num = self.num + int(self.display.text())
-                elif self.operator == "-":
-                    self.num = self.num - int(self.display.text())
-                elif self.operator == "*":
-                    self.num = self.num * int(self.display.text())
-                elif self.operator == "/":
-                    self.num = self.num / int(self.display.text())
+    def logic(self):
+        self.answer.setText(str(self.answer.text() + self.display.text()))
+        try:
+            self.answer.setText(str(eval(self.answer.text())))
+            # print(self.answer.text())
+        except Exception as e:
+            self.answer.setText("ERROR")
+            print(e)
 
-                self.operator = func
-                self.answer.setText(str(self.num) + func)
-                self.display.setText("")
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = Calc()
+    window.setWindowTitle("Calculator")
+    window.resize(300,600)
 
-            except Exception as e:
-                self.display.setText("ERROR")
-                self.answer.setText("")
-                print(e)
+    window.setStyleSheet(open("styles.css", "r").read())
 
-        elif self.display.text() != "":
-            self.num = int(self.display.text())
-            self.operator = func
-            self.answer.setText(str(self.num).strip("+").strip("-").strip("*").strip("/") + func)
-            self.display.setText("")
+    window.show()
 
-        # elif not self.operSet and self.display.text() != "":
-        #     self.operator = func
-        #     self.num = int(self.display.text())
-        #     self.answer.setText(str(self.num) + func)
-        #     self.display.setText("")
-        #     self.operSet = True
-
-
-
-app = QApplication(sys.argv)
-window = Calc()
-window.setWindowTitle("Calculator")
-window.resize(300,600)
-# window.setFixedSize(300, 600)
-# window.move(10,10)
-
-window.setStyleSheet(open("styles.css", "r").read())
-# hellomsg = QLabel("<h1> This is an hello label </h1>", parent=window)s
-# hellomsg.move(10,10)
-
-window.show()
-
-sys.exit(app.exec_())
+    sys.exit(app.exec_())
