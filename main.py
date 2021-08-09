@@ -1,6 +1,7 @@
 import PyQt5 as qt
 
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QLineEdit, QVBoxLayout, QMainWindow, QGridLayout, QSizePolicy
+from PyQt5.QtCore import Qt
 
 import sys, math, dill, time
 
@@ -189,6 +190,10 @@ class Calc(QMainWindow):
 
     def appendDisplay(self, s):
         pass
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Enter:
+            self.eq()
 
     def add(self):
         self.logic()
