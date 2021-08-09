@@ -184,6 +184,7 @@ class Calc(QMainWindow):
         self.extras["√"].clicked.connect(self.root)
         self.extras["x²"].clicked.connect(self.sq)
         self.extras["1/x"].clicked.connect(self.inv)
+        self.extras["."].clicked.connect(self.dec)
 
         buttonslayout.setSpacing(3)
         self.generalLayout.addLayout(buttonslayout)
@@ -194,6 +195,39 @@ class Calc(QMainWindow):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Enter:
             self.eq()
+        elif event.key() == Qt.Key_0:
+            self.zero()
+        elif event.key() == Qt.Key_1:
+            self.one()
+        elif event.key() == Qt.Key_2:
+            self.two()
+        elif event.key() == Qt.Key_3:
+            self.three()
+        elif event.key() == Qt.Key_4:
+            self.four()
+        elif event.key() == Qt.Key_5:
+            self.five()
+        elif event.key() == Qt.Key_6:
+            self.six()
+        elif event.key() == Qt.Key_7:
+            self.seven()
+        elif event.key() == Qt.Key_8:
+            self.eight()
+        elif event.key() == Qt.Key_9:
+            self.nine()
+        elif event.key() == Qt.Key_Plus:
+            self.add()
+        elif event.key() == Qt.Key_Minus:
+            self.sub()
+        elif event.key() == Qt.Key_Slash:
+            self.div()
+        elif event.key() == Qt.Key_Asterisk:
+            self.mul()
+        elif event.key() == Qt.Key_Period:
+            self.dec()
+        elif event.key() == Qt.Key_Backspace:
+            self.backspace()
+
 
     def add(self):
         self.logic()
@@ -258,6 +292,10 @@ class Calc(QMainWindow):
             print(e)
 
         self.display.setText("")
+
+    def dec(self):
+        text = self.display.text()
+        self.display.setText(text + ".")
 
     def mem(self):
         f = open("add.lib", "rb")
